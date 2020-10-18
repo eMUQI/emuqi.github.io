@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>利用 SMB 和树莓派打造家庭 NAS</title>
+    <url>/2020/10/RaspberrypiSMB/</url>
+    <content><![CDATA[<p><img src="/images/post/RaspberrypiSMB/pi-smb.webp" alt=""></p>
+<p>把移动硬盘挂载在树莓派上用 SMB 共享有一段时间了，利用树莓派作为中继在笔记本电脑和台式电脑之间传输数据非常方便。单个大文件传输速率在 35MB/s 到 50MB/s 之间，用电脑或手机播放硬盘里的视频完全没有压力，拖动进度条也不会出现卡顿的现象。今天就将如何利用树莓派打造为“简易 NAS”经验分享给大家。</p>
+<p>配置的关键：</p>
+<ul>
+<li>树莓派自动挂载硬盘</li>
+<li>部署配置 samba</li>
+</ul>
+<p>本文分享的是笔者本人部署经验，仅作参考，并不适用所有人的情况。如果文章内容有误，烦请斧正！</p>
+<a id="more"></a>
+
+<h2 id="配置树莓派"><a href="#配置树莓派" class="headerlink" title="配置树莓派"></a>配置树莓派</h2><ul>
+<li><p>笔者树莓派的系统信息：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Raspberrypi4b 4gb</span><br><span class="line">OS: Ubuntu 20.04 focal</span><br><span class="line">Kernel: aarch64 Linux 5.4.0-1008-raspi</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="挂载移动硬盘"><a href="#挂载移动硬盘" class="headerlink" title="挂载移动硬盘"></a>挂载移动硬盘</h3><h4 id="ntfs-3g"><a href="#ntfs-3g" class="headerlink" title="ntfs-3g"></a>ntfs-3g</h4><p>因为在 linux 内核所包含的 NTFS 驱动程序仅提供读取操作（包括列出文件清单、开启、复制文件），而<strong>缺少写入操作</strong>（包括创建文件，对文件的修改、更名、移动和删除）的支持。<strong>如果你的硬盘是 ntfs 文件系统，那么就需要使用<code>ntfs-3g</code>来挂载硬盘。</strong>如果你的硬盘是其他文件格式，请忽略此步骤。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo apt update &amp; sudo apt install ntfs-3g</span><br></pre></td></tr></table></figure>
+
+<h4 id="开机自动挂载"><a href="#开机自动挂载" class="headerlink" title="开机自动挂载"></a>开机自动挂载</h4><ol>
+<li><p>查看分区信息</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo fdisk -l  &#x2F;&#x2F;找到要挂载的硬盘并记住对应信息</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建挂载目录</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mkdir -p &#x2F;media&#x2F;WULU-HHD</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改<code>/etc/fstab</code></p>
+<p>将下面的 <code>/dev/sda1</code> 替换为你的硬盘，<code>/media/Wulu-HHD</code> 替换为你要挂载硬盘的路径。（适用于 NFTS 文件格式的硬盘，如果硬盘为其他格式需要适当调整）</p>
+<figure class="highlight plain"><figcaption><span>/etc/fstab</span></figcaption><table><tr><td class="code"><pre><span class="line">&#x2F;dev&#x2F;sda1       &#x2F;media&#x2F;Wulu-HHD ntfs-3g    defaults,uid&#x3D;1000,gid&#x3D;1000,dmask&#x3D;022,fmask&#x3D;133  0   0</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="配置-SMB"><a href="#配置-SMB" class="headerlink" title="配置 SMB"></a>配置 SMB</h3><ol>
+<li><p>安装 <code>samba</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo sudo apt install samba</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>设置 smb 用户密码</p>
+<p>将<code>ubuntu</code>替换为你的用户名，此密码用于登录 smb。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo smbpasswd -a ubuntu</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改 smb 配置文件</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo nano &#x2F;etc&#x2F;samba&#x2F;smb.conf</span><br></pre></td></tr></table></figure>
+
+<p>将下面 <code>/media/Wulu-HHD</code> 替换为你要共享的文件夹路径</p>
+<figure class="highlight plain"><figcaption><span>/etc/samba/smb.conf</span></figcaption><table><tr><td class="code"><pre><span class="line">[share]</span><br><span class="line">comment &#x3D; share folder</span><br><span class="line">browseable &#x3D; yes</span><br><span class="line">path &#x3D; &#x2F;media&#x2F;Wulu-HHD</span><br><span class="line">create mask &#x3D; 0700</span><br><span class="line">directory mask &#x3D; 0700</span><br><span class="line">valid users &#x3D; ubuntu</span><br><span class="line">force user &#x3D; ubuntu</span><br><span class="line">force group &#x3D; ubuntu</span><br><span class="line">public &#x3D; yes</span><br><span class="line">available &#x3D; yes</span><br><span class="line">writable &#x3D; yes</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重启 <code>samba</code>服务</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo systemctl restart smbd</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h2 id="连接-SMB-服务器"><a href="#连接-SMB-服务器" class="headerlink" title="连接 SMB 服务器"></a>连接 SMB 服务器</h2><ul>
+<li>Windows<ul>
+<li>临时使用：<code>win+R</code> 打开 <code>运行</code> 输入 <code>\\ip\path</code> （例如<code>\\192.168.1.100\share</code>）</li>
+<li>长期使用：在文件管理器打开 <code>此电脑</code> 在空白处点击鼠标右键选择 <code>添加一个网络位置</code> 输入 <code>\\ip\path</code> （例子同上）按照提示完成剩余步骤。最好提前给树莓派分配<strong>静态 IP</strong>。</li>
+</ul>
+</li>
+<li>Linux<ul>
+<li><a href="https://wiki.archlinux.org/index.php/Samba_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)#%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%85%8D%E7%BD%AE">Samba 客户端配置</a></li>
+<li><a href="https://wiki.archlinux.org/index.php/Samba_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)#File_manager_configuration">在各文件管理器配置（GNOME Files 和 KDE 等）</a></li>
+</ul>
+</li>
+<li>Android<ul>
+<li>文件管理器：ES 文件管理器等</li>
+<li>媒体播放器：MX Player 和 VLC 等</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>树莓派</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>将免费开源看板软件Wekan部署到树莓派4B</title>
+    <url>/2020/05/Wekan2/</url>
+    <content><![CDATA[<p><img src="/images/post/Wekan2.assets/page-cover.webp" alt=""></p>
+<p><a href="https://emuqi.github.io/2020/05/Wekan/">上篇文章</a>讲了如何利用Docker将<a href="https://wekan.github.io/">Wekan</a>部署在服务器上以及一些Wekan的基本操作。（如果你还不知道Wekan是啥，请看：<a href="https://emuqi.github.io/2020/05/Wekan/#Wekan-%E6%98%AF%E5%95%A5%EF%BC%9F">链接</a>）同时，也提到了在Wekan的官方文档里，无论是用Docker还是Snap部署Wekan，如果安全问题是很重要的，都不建议将Wekan暴露到外网（与内网相对）上。不想让服务器变成肉鸡或者暴露在危险下，正好Wekan也支持部署在树莓派上。那么，开始吧。</p>
+<p>本文将分三部分：</p>
+<ol>
+<li>在树莓派上部署Wekan</li>
+<li>导出Wekan数据（从docker）</li>
+<li>导入Wekan数据（到树莓派）</li>
+</ol>
+<a id="more"></a>
+
+<h2 id="在树莓派上安装Wekan"><a href="#在树莓派上安装Wekan" class="headerlink" title="在树莓派上安装Wekan"></a>在树莓派上安装Wekan</h2><p>参考链接：<a href="https://github.com/wekan/wekan/wiki/Raspberry-Pi/21af87a781474f52b2d5a81df01fd03bca089dcd#install-wekan-to-raspi3-raspi4-or-any-arm64-server">install-wekan-to-raspi3-raspi4-or-any-arm64-server</a></p>
+<h3 id="系统需求"><a href="#系统需求" class="headerlink" title="系统需求"></a>系统需求</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">README</span><br><span class="line">Currently uses Node v12.16.2 and MongoDB v3.x or v4.x</span><br><span class="line">Built on Ubuntu 19.10 64bit arm64 on RasPi4.</span><br><span class="line">Should work on RasPi3 and RasPi4 on Ubuntu 19.10 64bit arm64.</span><br><span class="line">Install info here:</span><br><span class="line">https:&#x2F;&#x2F;github.com&#x2F;wekan&#x2F;wekan&#x2F;wiki&#x2F;Raspberry-Pi</span><br></pre></td></tr></table></figure>
+
+<p>简单地说，需要装ubuntu64位的系统</p>
+<p>笔者树莓派的配置：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Raspberrypi4b 4gb</span><br><span class="line">OS: Ubuntu 20.04 focal</span><br><span class="line">Kernel: aarch64 Linux 5.4.0-1008-raspi</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装过程"><a href="#安装过程" class="headerlink" title="安装过程"></a>安装过程</h3><h4 id="下载和安装wekan所需要的"><a href="#下载和安装wekan所需要的" class="headerlink" title="下载和安装wekan所需要的"></a>下载和安装wekan所需要的</h4><p>用浏览器打开： <a href="https://releases.wekan.team/raspi3/">https://releases.wekan.team/raspi3/</a></p>
+<p>查看<code>README.txt</code>文件如：</p>
+<figure class="highlight plain"><figcaption><span>README.txt</span></figcaption><table><tr><td class="code"><pre><span class="line">README</span><br><span class="line">Currently uses Node v12.16.2 and MongoDB v3.x or v4.x</span><br><span class="line">Built on Ubuntu 19.10 64bit arm64 on RasPi4.</span><br><span class="line">Should work on RasPi3 and RasPi4 on Ubuntu 19.10 64bit arm64.</span><br><span class="line">Install info here:</span><br><span class="line">https:&#x2F;&#x2F;github.com&#x2F;wekan&#x2F;wekan&#x2F;wiki&#x2F;Raspberry-Pi</span><br></pre></td></tr></table></figure>
+
+<p>安装下列软件：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install npm mongodb-server mongodb-clients mongo-tools zip unzip</span><br></pre></td></tr></table></figure>
+
+<p>官方文档写的是：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo apt-get install npm mongodb-server mongodb-clients mongodb-tools zip unzip</span><br></pre></td></tr></table></figure>
+
+<p>但是笔者在实际安装过程中提示<code>E: Unable to locate package mongodb-tools</code>，经过笔者的搜索（不一定对）觉得应该是<code>mongodb-tools</code>于是就做了替换，在后续的安装过程中也没有出现问题。</p>
+<p>于是笔者用蹩脚的英语提了一个<a href="https://github.com/wekan/wekan/issues/3091">issue</a>，目前正在等待回应。</p>
+<p>接下来：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo npm -g install npm</span><br><span class="line">sudo npm -g install n</span><br></pre></td></tr></table></figure>
+
+<p>在前文提到的<code>README.txt</code>文件查看Node版本，然后安装。比如此时，Node 的版本是12.16.2：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo n 12.16.2</span><br></pre></td></tr></table></figure>
+
+<p>接下来切换到你想储存wekan的目录，比如笔者习惯放在<code>repo/xxx</code>目录下：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/repo/wekan</span><br></pre></td></tr></table></figure>
+
+<p>查看上文让你打开的<a href="https://releases.wekan.team/raspi3/">网站</a>，下载Wekan（名字类似<code>wekan-x.xx-arm64.zip</code>），可以鼠标右键点击然后选择复制链接，比如笔者安装时是<code>wekan-4.01-arm64.zip</code>：</p>
+<p><img src="/images/post/Wekan2.assets/wekan-pi-releases.webp" alt="https://releases.wekan.team/raspi3/"></p>
+<figure class="highlight plain"><figcaption><span>~/repo/wekan</span></figcaption><table><tr><td class="code"><pre><span class="line">wget https:&#x2F;&#x2F;releases.wekan.team&#x2F;raspi3&#x2F;wekan-4.01-arm64.zip</span><br></pre></td></tr></table></figure>
+
+<p>接下来下载最新的<code>start-wekan.sh</code>:</p>
+<figure class="highlight plain"><figcaption><span>~/repo/wekan</span></figcaption><table><tr><td class="code"><pre><span class="line">wget https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;wekan&#x2F;wekan&#x2F;master&#x2F;start-wekan.sh</span><br></pre></td></tr></table></figure>
+
+<p>解压之前下载wekan压缩包：</p>
+<figure class="highlight plain"><figcaption><span>~/repo/wekan</span></figcaption><table><tr><td class="code"><pre><span class="line">unzip wekan-4.01-arm64.zip</span><br></pre></td></tr></table></figure>
+
+<p>解压完成后，你的wekan目录应如：</p>
+<figure class="highlight plain"><figcaption><span>~/repo/wekan</span></figcaption><table><tr><td class="code"><pre><span class="line">bundle  start-wekan.sh  wekan-4.01-arm64.zip</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="以服务的方式运行wekan"><a href="#以服务的方式运行wekan" class="headerlink" title="以服务的方式运行wekan"></a>以服务的方式运行wekan</h3><p>如果你想以非root用户将node运行在80端口：</p>
+<p>首先，查看node的安装位置：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">which</span> node</span><br></pre></td></tr></table></figure>
+
+<p>赋予权限，比如笔者上一步得到的结果是<code>/usr/local/bin/node</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo <span class="built_in">setcap</span> cap_net_bind_service=+ep /usr/<span class="built_in">local</span>/bin/node</span><br></pre></td></tr></table></figure>
+
+<p>编辑<code>/etc/systemd/system/wekan.service</code>:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo nano /etc/systemd/system/wekan.service</span><br></pre></td></tr></table></figure>
+
+<p>添加下列内容：（注意<code>WorkingDirectory</code>后面的值应为前面解压的<code>wekan-4.01-arm64.zip</code>得到的<code>bundle</code>目录，比如<code>/home/ubuntu/repo/wekan/bundle</code>）</p>
+<figure class="highlight plain"><figcaption><span>/etc/systemd/system/wekan.service</span></figcaption><table><tr><td class="code"><pre><span class="line">[Unit]</span><br><span class="line">Description&#x3D;The Wekan Service</span><br><span class="line">After&#x3D;syslog.target network.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">EnvironmentFile&#x3D;&#x2F;etc&#x2F;default&#x2F;wekan</span><br><span class="line">User&#x3D;ubuntu</span><br><span class="line">Group&#x3D;ubuntu</span><br><span class="line">WorkingDirectory&#x3D;&#x2F;home&#x2F;ubuntu&#x2F;repo&#x2F;wekan&#x2F;bundle</span><br><span class="line">ExecStart&#x3D;&#x2F;usr&#x2F;local&#x2F;bin&#x2F;node main.js</span><br><span class="line">Restart&#x3D;on-failure</span><br><span class="line">SuccessExitStatus&#x3D;143</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy&#x3D;multi-user.target</span><br></pre></td></tr></table></figure>
+
+<p>查看你树莓派的ip地址：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ip address</span><br></pre></td></tr></table></figure>
+
+<p>记住你的ip地址形如<code>192.168.x.x</code>，下面呢以<code>192.168.1.20</code>为例子。</p>
+<p>接下来编辑wekan的配置文件<code>/etc/default/wekan</code>，添加下列内容：（<code>ROOT_URL</code>改为树莓派的ip地址，为了更加方便，推荐在路由器上设置给你的树莓派分配固定ip）</p>
+<figure class="highlight plain"><figcaption><span>/etc/default/wekan</span></figcaption><table><tr><td class="code"><pre><span class="line">NODE_ENV&#x3D;production</span><br><span class="line">WITH_API&#x3D;true</span><br><span class="line">MONGO_URL&#x3D;mongodb:&#x2F;&#x2F;127.0.0.1:27017&#x2F;wekan</span><br><span class="line">ROOT_URL&#x3D;http:&#x2F;&#x2F;192.168.1.20</span><br><span class="line">PORT&#x3D;80</span><br></pre></td></tr></table></figure>
+
+<p>启动wekan：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo systemctl start wekan</span><br></pre></td></tr></table></figure>
+
+<p>设置开机自启：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo systemctl enable wekan</span><br></pre></td></tr></table></figure>
+
+<p>查看wekan运行状况：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo systemctl status wekan</span><br></pre></td></tr></table></figure>
+
+<p>打开浏览器访问之前设设置的<code>ROOT_URL</code>（比如笔者设置的是<code>http://192.168.1.20</code>）看到登陆界面就大功告成了。<strong>第一个注册的为管理员账户。</strong>如果你想知道更多的wekan操作，可以查看上一篇文章：<a href="https://emuqi.github.io/2020/05/Wekan/#%E6%A8%A1%E6%9D%BF%E7%9A%84%E4%BD%BF%E7%94%A8">免费开源看板软件Wekan安装与使用记录</a>。</p>
+<p>如果你还需要还原wekan数据，请不要着急，继续往下看。</p>
+<h2 id="导出Wekan数据（从docker）"><a href="#导出Wekan数据（从docker）" class="headerlink" title="导出Wekan数据（从docker）"></a>导出Wekan数据（从docker）</h2><p>本文将介绍如何从docker导出wekan的数据，参考<a href="https://github.com/wekan/wekan/wiki/Export-Docker-Mongo-Data">Export-Docker-Mongo-Data</a>。其他安装方式安装的wekan数据的备份和还原请参考 <a href="https://github.com/wekan/wekan/wiki/Backup">Wekan-Wiki-Backup</a>。</p>
+<h4 id="停止运行wekan"><a href="#停止运行wekan" class="headerlink" title="停止运行wekan"></a>停止运行wekan</h4><p><strong>这一步十分重要！</strong></p>
+<p>查看当前的docker进程：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker ps</span><br></pre></td></tr></table></figure>
+
+<p>然后你将看到<code>wekan-app</code>和<code>wekan-db</code>，关闭<code>wekan-app</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker stop wekan-app</span><br></pre></td></tr></table></figure>
+
+<p>再次查看当前的docker进程确保<code>wekan-app</code>已经停止运行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker ps</span><br></pre></td></tr></table></figure>
+
+<h4 id="导出数据"><a href="#导出数据" class="headerlink" title="导出数据"></a>导出数据</h4><p>进入mongo容器：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it wekan-db bash</span><br></pre></td></tr></table></figure>
+
+<p>切换到容器的根目录：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /</span><br></pre></td></tr></table></figure>
+
+<p>将数据导出到容器内的目录下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mongodump -o &#x2F;dump&#x2F;</span><br></pre></td></tr></table></figure>
+
+<p>退出容器：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+
+<p>将导出的数据保存当前目录：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker cp wekan-db:/dump .</span><br></pre></td></tr></table></figure>
+
+<h2 id="导入数据"><a href="#导入数据" class="headerlink" title="导入数据"></a>导入数据</h2><h3 id="停止本地运行wekan"><a href="#停止本地运行wekan" class="headerlink" title="停止本地运行wekan"></a>停止本地运行wekan</h3><p>为了避免不可预计的问题，请先停止本地运行的wekan！</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo systemctl stop wekan</span><br></pre></td></tr></table></figure>
+
+<h3 id="导入数据-1"><a href="#导入数据-1" class="headerlink" title="导入数据"></a>导入数据</h3><p>从服务器上下载导出数据：(这里笔者用scp下载，你也可用其他方法，关于scp的用法可以参考：<a href="https://www.cnblogs.com/wx170119/p/10238686.html">从Linux服务器下载文件到本地</a>)</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r user@youdomian.com:~/repo/wekan/dump /home/ubuntu/repo/wekan/</span><br></pre></td></tr></table></figure>
+
+<p>将数据还原到wekan的数据库：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mongorestore --drop --db wekan /home/ubuntu/repo/wekan/dump/wekan/</span><br></pre></td></tr></table></figure>
+
+<p>重新打开wekan：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo systemctl restart wekan</span><br></pre></td></tr></table></figure>
+
+<p>重新访问wekan，就可以直接用之前的账号登陆并且使用原来的看板了！</p>
+]]></content>
+      <categories>
+        <category>解决方案</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>树莓派</tag>
+        <tag>Wekan</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>免费开源看板软件Wekan安装与使用记录</title>
+    <url>/2020/05/Wekan/</url>
+    <content><![CDATA[<p><img src="/images/post/Wekan.assets/wekan-logo.webp" alt="Wekan"></p>
+<p>本文将记录笔者在部署和使用Wekan（作为个人看板）中遇到的一些问题和解决的方法。一来，方便以后笔者本人再次部署或者遇到同样的问题；再者，可以给打算使用Wekan但是又不知从何起手的人做一个参考。如果你的英文足够好，还是建议<strong>参考<a href="https://github.com/wekan/wekan/wiki">Wekan的文档</a>。</strong></p>
+<p>本文将讲述如何将Wekan部署到服务器上，如果你想部署到树莓派上可以参考笔者的另一篇文章：<a href="https://emuqi.github.io/2020/05/Wekan2/">将免费开源看板软件Wekan部署到树莓派4B</a></p>
+<p>本文将结合笔者在实际使用中的经验介绍：</p>
+<ul>
+<li>Wekan的安装部署（Docker）</li>
+<li>Wekan模板的使用</li>
+<li>Wekan规则的使用</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="Wekan-是啥？"><a href="#Wekan-是啥？" class="headerlink" title="Wekan 是啥？"></a>Wekan 是啥？</h2><p>Wekan在<a href="https://github.com/wekan/wekan">GitHub</a>上的介绍：</p>
+<blockquote>
+<p><strong>Wekan is an completely Open Source and Free software collaborative kanban board application with MIT license.</strong></p>
+<p>Whether you’re maintaining a personal todo list, planning your holidays with some friends, or working in a team on your next revolutionary idea, Kanban boards are an unbeatable tool to keep your things organized. They give you a visual overview of the current state of your project, and make you productive by allowing you to focus on the few items that matter the most.</p>
+<p>Since Wekan is a free software, you don’t have to trust us with your data and <strong>can install Wekan on your own computer or server. In fact we encourage you to do that by providing one-click installationde on various platforms.</strong></p>
+</blockquote>
+<p>简单地说，Wekan是一款遵循MIT协议完全开源的协作看板软件。它支持<strong>基于卡片的任务和待办事项管理</strong>，同时还允许多用户协同使用。你可以自由地将Wekan部署到你自己的计算机或者服务器（也可以部署在树莓派上哦~）然后使用它。官方Demo：<a href="https://boards.wekan.team/b/D2SzJKZDS4Z48yeQH/wekan-open-source-kanban-board-with-mit-license">链接</a>。支持的平台：<a href="https://github.com/wekan/wekan/wiki/Platforms">链接</a>。Wekan的功能特性：<a href="https://github.com/wekan/wekan/wiki/Features">链接</a>。</p>
+<h2 id="安装-amp-初始化"><a href="#安装-amp-初始化" class="headerlink" title="安装&amp;初始化"></a>安装&amp;初始化</h2><h3 id="Docker-（无自动更新）"><a href="#Docker-（无自动更新）" class="headerlink" title="Docker （无自动更新）"></a>Docker （无自动更新）</h3><blockquote>
+<p>Keep backups, Docker is more complex than others above. <strong>Use only if you  have time to test new release first</strong>, and it’s critical nothing gets  broken. Because Docker does not have automatic updates, please keep  behind firewall, without any ports open to Internet, <strong>because Wekan gets  new security etc updates to Node.js and other dependencies often.</strong></p>
+</blockquote>
+<p>根据官方的提示，<strong>「仅在能经常测试新版的情况下使用」</strong>，因为<strong>「Docker没有自动更新」</strong>，而Wekan依赖的库可能经常需要安全更新。笔者目前是使用Docker来部署的，一开始用docker安装是觉得用docker部署只用改改配置文件,现在看来更麻烦,估计很快就会转移到snap。接下来，就来讲讲如何用Docker来部署Wekan吧。Wekan的Docker版安装文档:<a href="https://github.com/wekan/wekan/wiki/Docker">链接</a></p>
+<h4 id="安装环境"><a href="#安装环境" class="headerlink" title="安装环境"></a>安装环境</h4><ul>
+<li><p>OS: Ubuntu 18.04 bionic</p>
+</li>
+<li><p>Kernel: x86_64 Linux 4.15.0-99-generic</p>
+</li>
+</ul>
+<h4 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h4><p>略…</p>
+<h4 id="下载docker-compose-yml"><a href="#下载docker-compose-yml" class="headerlink" title="下载docker-compose.yml"></a>下载<code>docker-compose.yml</code></h4><p>如果你没有<code>wget</code>,先安装<code>wget</code>:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt install wget</span><br></pre></td></tr></table></figure>
+
+<p>接下来,用<code>wget</code>下载配置文件:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget https://raw.githubusercontent.com/wekan/wekan/master/docker-compose.yml</span><br></pre></td></tr></table></figure>
+
+<h4 id="修改docker-compose-yml"><a href="#修改docker-compose-yml" class="headerlink" title="修改docker-compose.yml"></a>修改<code>docker-compose.yml</code></h4><p>其实在<code>docker-compose.yml</code>里,对于每个对应的设置都有很想详尽的描述.</p>
+<p>这里提一下几个重要的配置:</p>
+<ul>
+<li><p><code>ports</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ports:</span><br><span class="line">      # Docker outsideport:insideport. Do not add anything extra here.</span><br><span class="line">      # For example, if you want to have wekan on port 3001,</span><br><span class="line">      # use 3001:8080 . Do not add any extra address etc here, that way it does not work.</span><br><span class="line">      # remove port mapping if you use nginx reverse proxy, port 8080 is already exposed to wekan-tier network</span><br><span class="line">      - 80:8080</span><br></pre></td></tr></table></figure>
+
+<p>冒号前为外部端口，冒号后为内部端口，如果你想改变端口号，比如3001，那么只需要改成<code>3001:8080</code>即可</p>
+</li>
+<li><p><code>root_url</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">environment:</span><br><span class="line">  - MONGO_URL&#x3D;mongodb:&#x2F;&#x2F;wekandb:27017&#x2F;wekan</span><br><span class="line">  #---------------------------------------------------------------</span><br><span class="line">  # &#x3D;&#x3D;&#x3D;&#x3D; ROOT_URL SETTING &#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">  # Change ROOT_URL to your real Wekan URL, for example:</span><br><span class="line">  # If you have Caddy&#x2F;Nginx&#x2F;Apache providing SSL</span><br><span class="line">  #  - https:&#x2F;&#x2F;example.com</span><br><span class="line">  #  - https:&#x2F;&#x2F;boards.example.com</span><br><span class="line">  # This can be problematic with avatars https:&#x2F;&#x2F;github.com&#x2F;wekan&#x2F;wekan&#x2F;issues&#x2F;1776</span><br><span class="line">  #  - https:&#x2F;&#x2F;example.com&#x2F;wekan</span><br><span class="line">  # If without https, can be only wekan node, no need for Caddy&#x2F;Nginx&#x2F;Apache if you don&#39;t need them</span><br><span class="line">  #  - http:&#x2F;&#x2F;example.com</span><br><span class="line">  #  - http:&#x2F;&#x2F;boards.example.com</span><br><span class="line">  #  - http:&#x2F;&#x2F;192.168.1.100    &lt;&#x3D;&#x3D;&#x3D; using at local LAN</span><br><span class="line">  - ROOT_URL&#x3D;http:&#x2F;&#x2F;localhost  #   &lt;&#x3D;&#x3D;&#x3D; using only at same laptop&#x2F;desktop where Wekan is installed</span><br></pre></td></tr></table></figure>
+
+<p>如果只在本地使用那么就不用更改，<code>ROOT_URL=http://localhost</code>.例如使用默认设置，那么使用<code>http://localhost</code>就能访问Wekan。如果像上面的例子将端口改为了<code>3001</code>,那么就需要设置<code>ROOT_URL=http://localhost:3001</code>。如用要在外部访问或者通过域名访问，也是如此，以此类推。参考：<a href="https://github.com/wekan/wekan/wiki/Settings">链接</a></p>
+</li>
+<li><p>关于邮箱系统</p>
+<p>参考：<a href="https://github.com/wekan/wekan/wiki/Troubleshooting-Mail">链接</a></p>
+<p>由于笔者是将Wekan做个人看版使用，所以不需要邮箱系统。在配置文件中删掉或者注释掉<code>MAIL_URL</code> 和<code>MAIL_FROM</code>即可。</p>
+</li>
+</ul>
+<h4 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h4><p>在<code>docker-compose.yml</code>所在的目录下：</p>
+<ul>
+<li><p>前台运行</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker-compose up		#启动</span><br><span class="line">docker-compose stop	#停止</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>后台运行（无输出）</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker-compose up -d	#启动 下面两行为启动成功的提示</span><br><span class="line">Starting wekan-db ... done</span><br><span class="line">Recreating wekan-app ... done</span><br><span class="line">docker-compose stop		#停止</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<p>  启动完成后，用浏览器访问对应的网址即可。<strong>第一个注册的账号为管理员账号</strong>。可在“点击头像”-“选择挂管理面板”打开管理面板对Wekan进行设置。如果只做个人使用，建议勾选<code>禁止自主注册</code>。</p>
+<p>  <img src="/images/post/Wekan.assets/noregistration.webp" alt="设置禁止自主注册"></p>
+<h3 id="Snap（有自动更新）"><a href="#Snap（有自动更新）" class="headerlink" title="Snap（有自动更新）"></a>Snap（有自动更新）</h3><blockquote>
+<p>Snap for Linux, install to your own server or laptop. <strong>Automatic Updates.</strong> Only Standalone Wekan.</p>
+<p>If on Snap Stable automatic update breaks something, <a href="https://github.com/wekan/wekan-snap/issues">report Wekan for Snap bugs and feature requests here</a>, so it can be fixed on some automatic update. <strong>If security is critical,  keep behind firewall, without any ports open to Internet.</strong></p>
+</blockquote>
+<p>那么就等笔者用snap再次部署的时候再更新吧…</p>
+<h2 id="模板的使用"><a href="#模板的使用" class="headerlink" title="模板的使用"></a>模板的使用</h2><p>参看：<a href="https://github.com/wekan/wekan/wiki/Templates">链接</a></p>
+<h3 id="模板设置"><a href="#模板设置" class="headerlink" title="模板设置"></a>模板设置</h3><h4 id="模板设置入口"><a href="#模板设置入口" class="headerlink" title="模板设置入口"></a>模板设置入口</h4><p><img src="/images/post/Wekan.assets/templatesetting.webp" alt="模板设置入口"></p>
+<h4 id="卡片模板设置"><a href="#卡片模板设置" class="headerlink" title="卡片模板设置"></a>卡片模板设置</h4><p>直接添加卡片即可</p>
+<p><img src="/images/post/Wekan.assets/editcardtemplates.webp" alt="编辑卡片模板"></p>
+<h4 id="看板模板设置"><a href="#看板模板设置" class="headerlink" title="看板模板设置"></a>看板模板设置</h4><p>添加后点文件夹图标即可进入编辑状态。</p>
+<p><img src="/images/post/Wekan.assets/editkanbantemplate.webp" alt="编辑看板模板"></p>
+<h3 id="模板示例"><a href="#模板示例" class="headerlink" title="模板示例"></a>模板示例</h3><p>接下分享一下笔者个人在用的模板</p>
+<h4 id="每月模板（看板模板）"><a href="#每月模板（看板模板）" class="headerlink" title="每月模板（看板模板）"></a>每月模板（看板模板）</h4><p><img src="/images/post/Wekan.assets/monthlykanbantemplate.webp" alt="每月看板模板"></p>
+<p>建议在设计模板的时候就把标签和规则设置好：</p>
+<p><img src="/images/post/Wekan.assets/tags.webp" alt="模板标签"></p>
+<h3 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h3><p>当你使用模板时，如果用到了标签，需要你的看板里的标签和模板里的标签一致,标签才会显示。</p>
+<h2 id="规则"><a href="#规则" class="headerlink" title="规则"></a>规则</h2><h3 id="自动记录开始时间"><a href="#自动记录开始时间" class="headerlink" title="自动记录开始时间"></a>自动记录开始时间</h3><p><img src="/images/post/Wekan.assets/automarkstarttime.webp" alt="自动记录开始时间"></p>
+<h3 id="自动记录结束时间"><a href="#自动记录结束时间" class="headerlink" title="自动记录结束时间"></a>自动记录结束时间</h3><p><img src="/images/post/Wekan.assets/automarkendtime.webp" alt="自动记录结束时间"></p>
+]]></content>
+      <categories>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>Wekan</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Firefox Developer Edition 更换界面语言为中文</title>
+    <url>/2020/03/FirefoxDevChangeLanguage/</url>
+    <content><![CDATA[<p><img src="https://www.mozilla.org/media/protocol/img/logos/firefox/browser/developer/logo-word-hor-lg-high-res.a18e90a71b15.png" alt=""></p>
+<p>在<a href="https://www.mozilla.org/en-US/firefox/developer/">Firefox英文官网</a>下载<strong>Firefox Developer Edition</strong>。下载安装完是英文界面的。后来觉得不方便就想将其设置为中文。于是，<strong>参考<a href="https://support.mozilla.org/en-US/kb/use-firefox-another-language">Firefox官方更换语言指引</a>进行设置，但是仍然无法更改语言。</strong></p>
+<p>遂到网上搜索解决方案，发现基本都是建议下载<a href="https://www.mozilla.org/zh-CN/firefox/developer/">中文版本</a>然后重新安装。虽然感觉这个方法能行，但是我相信应该还有其他更加“温和”方法。于是就继续查找有没有其他解决方案。终于在<a href="https://support.mozilla.org/en-US/questions">Mozilla Support Forum</a>找到一个提问<a href="https://support.mozilla.org/en-US/questions/1223719">How to change the interface to different language?</a>下面的回复：</p>
+<a id="more"></a>
+
+<blockquote>
+<p>You need to modify/create a string pref on the <strong>about:config</strong> page like written in the knowledge base article</p>
+<ul>
+<li>intl.locale.requested = “ja”<br>(without the quotes)</li>
+</ul>
+<p>You can open the <strong>about:config</strong> page via the location/address bar. You can accept the warning and click “I accept the risk!” to continue.</p>
+</blockquote>
+<p>按照这个方法，终于成功更换语言。</p>
+<ol>
+<li>在地址栏输入 <strong>about:config</strong> 进入页面</li>
+<li>点击 “I accept the risk!”</li>
+<li>在页面里的搜索框输入 <code>intl.locale.requested</code></li>
+<li>选择 <code>string</code> 然后点击右侧的加号</li>
+<li>输入<code>zh-cn</code>，然后确定。（同理还能设置为任意其他语言）</li>
+<li>重启浏览器后语言就切换为中文了。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>解决方案</category>
+      </categories>
+      <tags>
+        <tag>FireFox Devloper Edition</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Macbook air 2018 catalina 重装记录</title>
+    <url>/2020/02/ReinstallCatalina/</url>
+    <content><![CDATA[<p><img src="/images/post/ReinstallCatalina/post_cover.png" alt=""></p>
+<p>备份数据后开始重装：</p>
+<ol>
+<li>Command-R 进入实用工具</li>
+<li>项目列表连接WiFi</li>
+</ol>
+<a id="more"></a>
+
+<h2 id="第一次尝试（未能创建用于APFS安装的预启动宗卷）"><a href="#第一次尝试（未能创建用于APFS安装的预启动宗卷）" class="headerlink" title="第一次尝试（未能创建用于APFS安装的预启动宗卷）"></a>第一次尝试（未能创建用于APFS安装的预启动宗卷）</h2><ol>
+<li>没有使用磁盘工具抹除磁盘</li>
+<li>直接选择了重新安装MacOS</li>
+<li>出现“未能创建用于APFS安装的预启动宗卷”错误</li>
+</ol>
+<h2 id="第二次尝试（-1008f）"><a href="#第二次尝试（-1008f）" class="headerlink" title="第二次尝试（-1008f）"></a>第二次尝试（-1008f）</h2><ol>
+<li>使用磁盘工具抹除了硬盘，格式都为APFS</li>
+<li>选择重新安装MacOS，但是出现了两个一样的硬盘（macintochHD 和 macintochHD - 数据）</li>
+<li>出现 -1008f 错误</li>
+</ol>
+<h2 id="第n次尝试-（-1008f）"><a href="#第n次尝试-（-1008f）" class="headerlink" title="第n次尝试 （-1008f）"></a>第n次尝试 （-1008f）</h2><ol>
+<li>第一次尝试后，开机已然无法进入实用工具</li>
+<li>尝试Command-R 开机，等待后仍显示1008f错误</li>
+<li>尝试Shift-Option-Command-R 开机，从互联网重新安装您电脑原始版本的 macOS，等待后仍然显示1008f错误</li>
+<li>尝试Option-Command-R 开机，从互联网安装最新版本的 macOS，等待后进入了实用工具界面。重启后仍然无法开机，算是又回到原点。<br>参考：<a href="https://support.apple.com/zh-cn/guide/mac-help/mchlp1599/mac">重新安装 macOS</a></li>
+</ol>
+<h2 id="最终尝试-（成功）"><a href="#最终尝试-（成功）" class="headerlink" title="最终尝试 （成功）"></a>最终尝试 （成功）</h2><p>经过大量查阅查阅资料，在最后一次安装终于重装成功。以下步骤不保证每一个步骤都与成功安装的结果关联。</p>
+<ol>
+<li>从“查找我的设备”中移除了该mac设备。</li>
+<li>尝试Option-Command-R 开机，从互联网安装最新版本的 macOS，等待后进入了实用工具界面。</li>
+<li>进入实用工具界面，抹除磁盘，有两个一样的磁盘（macintochHD 和 macintochHD - 数据）移除后者，选中“macintochHD - 数据”，然后点击上方减号。</li>
+<li>打开终端输入date查看时间，发现时间不对，使用date命令修改时间至准确。</li>
+<li>在终端中 删除某个文件，具体是什么已忘记… </li>
+<li>然后 ，选择“重新安装Mac os”</li>
+<li>进入安装引导界面后，提示安装助理“内存不足”还是什么，重启之后就能正常开机了。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>解决方案</category>
+      </categories>
+      <tags>
+        <tag>Catalina</tag>
+      </tags>
+  </entry>
+</search>
