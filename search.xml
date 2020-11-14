@@ -8,7 +8,7 @@
 <p>本文将讲述 <code>node-stream</code> 的部署和使用。对项目本身构建感兴趣的伙伴可以查看项目开发者 <a href="https://github.com/waleedahmad">waleedahmad</a> 写的文章 <a href="https://quantizd.com/building-live-streaming-app-with-node-js-and-react/">Building Live Streaming App with Node.js and React</a>。</p>
 <a id="more"></a>
 
-<h2 id="原版的node-stream的安装使用"><a href="#原版的node-stream的安装使用" class="headerlink" title="原版的node-stream的安装使用"></a>原版的node-stream的安装使用</h2><h3 id="部署node-stream开发环境"><a href="#部署node-stream开发环境" class="headerlink" title="部署node-stream开发环境"></a>部署node-stream开发环境</h3><p>以 Ubuntu </p>
+<h2 id="原版的node-stream的安装使用"><a href="#原版的node-stream的安装使用" class="headerlink" title="原版的node-stream的安装使用"></a>原版的node-stream的安装使用</h2><h3 id="部署node-stream开发环境"><a href="#部署node-stream开发环境" class="headerlink" title="部署node-stream开发环境"></a>部署node-stream开发环境</h3><p>以 Ubuntu 为例</p>
 <ul>
 <li><p>安装Node.js开发环境</p>
 </li>
