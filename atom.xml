@@ -5,9 +5,9 @@
   
   <link href="/atom.xml" rel="self"/>
   
-  <link href="https://emuqi.github.io/"/>
+  <link href="https://wulu.zone/"/>
   <updated>2020-11-14T16:56:55.315Z</updated>
-  <id>https://emuqi.github.io/</id>
+  <id>https://wulu.zone/</id>
   
   <author>
     <name>Wulu</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>node-stream 基于Node.js 的本地直播应用（服务端和客户端）</title>
-    <link href="https://emuqi.github.io/2020/11/node-stream/"/>
-    <id>https://emuqi.github.io/2020/11/node-stream/</id>
+    <link href="https://wulu.zone/2020/11/node-stream/"/>
+    <id>https://wulu.zone/2020/11/node-stream/</id>
     <published>2020-11-10T13:42:55.000Z</published>
     <updated>2020-11-14T16:56:55.315Z</updated>
     
@@ -34,19 +34,19 @@
     </summary>
     
     
-      <category term="开源项目分享" scheme="https://emuqi.github.io/categories/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%88%86%E4%BA%AB/"/>
+      <category term="开源项目分享" scheme="https://wulu.zone/categories/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%88%86%E4%BA%AB/"/>
     
     
-      <category term="树莓派" scheme="https://emuqi.github.io/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"/>
+      <category term="树莓派" scheme="https://wulu.zone/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"/>
     
-      <category term="nodejs" scheme="https://emuqi.github.io/tags/nodejs/"/>
+      <category term="nodejs" scheme="https://wulu.zone/tags/nodejs/"/>
     
   </entry>
   
   <entry>
     <title>利用 SMB 和树莓派打造家庭 NAS</title>
-    <link href="https://emuqi.github.io/2020/10/RaspberrypiSMB/"/>
-    <id>https://emuqi.github.io/2020/10/RaspberrypiSMB/</id>
+    <link href="https://wulu.zone/2020/10/RaspberrypiSMB/"/>
+    <id>https://wulu.zone/2020/10/RaspberrypiSMB/</id>
     <published>2020-10-17T13:58:30.000Z</published>
     <updated>2020-11-10T13:40:45.281Z</updated>
     
@@ -66,17 +66,17 @@
     </summary>
     
     
-      <category term="笔记" scheme="https://emuqi.github.io/categories/%E7%AC%94%E8%AE%B0/"/>
+      <category term="笔记" scheme="https://wulu.zone/categories/%E7%AC%94%E8%AE%B0/"/>
     
     
-      <category term="树莓派" scheme="https://emuqi.github.io/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"/>
+      <category term="树莓派" scheme="https://wulu.zone/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"/>
     
   </entry>
   
   <entry>
     <title>将免费开源看板软件Wekan部署到树莓派4B</title>
-    <link href="https://emuqi.github.io/2020/05/Wekan2/"/>
-    <id>https://emuqi.github.io/2020/05/Wekan2/</id>
+    <link href="https://wulu.zone/2020/05/Wekan2/"/>
+    <id>https://wulu.zone/2020/05/Wekan2/</id>
     <published>2020-05-14T07:21:38.000Z</published>
     <updated>2020-11-10T14:10:49.047Z</updated>
     
@@ -96,23 +96,23 @@
     </summary>
     
     
-      <category term="解决方案" scheme="https://emuqi.github.io/categories/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/"/>
+      <category term="解决方案" scheme="https://wulu.zone/categories/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/"/>
     
-      <category term="笔记" scheme="https://emuqi.github.io/categories/%E7%AC%94%E8%AE%B0/"/>
+      <category term="笔记" scheme="https://wulu.zone/categories/%E7%AC%94%E8%AE%B0/"/>
     
-      <category term="开源项目分享" scheme="https://emuqi.github.io/categories/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%88%86%E4%BA%AB/"/>
+      <category term="开源项目分享" scheme="https://wulu.zone/categories/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%88%86%E4%BA%AB/"/>
     
     
-      <category term="树莓派" scheme="https://emuqi.github.io/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"/>
+      <category term="树莓派" scheme="https://wulu.zone/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/"/>
     
-      <category term="Wekan" scheme="https://emuqi.github.io/tags/Wekan/"/>
+      <category term="Wekan" scheme="https://wulu.zone/tags/Wekan/"/>
     
   </entry>
   
   <entry>
     <title>免费开源看板软件Wekan安装与使用记录</title>
-    <link href="https://emuqi.github.io/2020/05/Wekan/"/>
-    <id>https://emuqi.github.io/2020/05/Wekan/</id>
+    <link href="https://wulu.zone/2020/05/Wekan/"/>
+    <id>https://wulu.zone/2020/05/Wekan/</id>
     <published>2020-05-04T11:35:44.000Z</published>
     <updated>2020-11-10T14:10:43.695Z</updated>
     
@@ -133,19 +133,19 @@
     </summary>
     
     
-      <category term="笔记" scheme="https://emuqi.github.io/categories/%E7%AC%94%E8%AE%B0/"/>
+      <category term="笔记" scheme="https://wulu.zone/categories/%E7%AC%94%E8%AE%B0/"/>
     
-      <category term="开源项目分享" scheme="https://emuqi.github.io/categories/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%88%86%E4%BA%AB/"/>
+      <category term="开源项目分享" scheme="https://wulu.zone/categories/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%88%86%E4%BA%AB/"/>
     
     
-      <category term="Wekan" scheme="https://emuqi.github.io/tags/Wekan/"/>
+      <category term="Wekan" scheme="https://wulu.zone/tags/Wekan/"/>
     
   </entry>
   
   <entry>
     <title>Firefox Developer Edition 更换界面语言为中文</title>
-    <link href="https://emuqi.github.io/2020/03/FirefoxDevChangeLanguage/"/>
-    <id>https://emuqi.github.io/2020/03/FirefoxDevChangeLanguage/</id>
+    <link href="https://wulu.zone/2020/03/FirefoxDevChangeLanguage/"/>
+    <id>https://wulu.zone/2020/03/FirefoxDevChangeLanguage/</id>
     <published>2020-03-21T12:31:00.000Z</published>
     <updated>2020-09-12T08:39:45.596Z</updated>
     
@@ -160,17 +160,17 @@
     </summary>
     
     
-      <category term="解决方案" scheme="https://emuqi.github.io/categories/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/"/>
+      <category term="解决方案" scheme="https://wulu.zone/categories/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/"/>
     
     
-      <category term="FireFox Devloper Edition" scheme="https://emuqi.github.io/tags/FireFox-Devloper-Edition/"/>
+      <category term="FireFox Devloper Edition" scheme="https://wulu.zone/tags/FireFox-Devloper-Edition/"/>
     
   </entry>
   
   <entry>
     <title>Macbook air 2018 catalina 重装记录</title>
-    <link href="https://emuqi.github.io/2020/02/ReinstallCatalina/"/>
-    <id>https://emuqi.github.io/2020/02/ReinstallCatalina/</id>
+    <link href="https://wulu.zone/2020/02/ReinstallCatalina/"/>
+    <id>https://wulu.zone/2020/02/ReinstallCatalina/</id>
     <published>2020-02-21T12:31:00.000Z</published>
     <updated>2020-09-12T08:39:45.632Z</updated>
     
@@ -188,10 +188,10 @@
     </summary>
     
     
-      <category term="解决方案" scheme="https://emuqi.github.io/categories/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/"/>
+      <category term="解决方案" scheme="https://wulu.zone/categories/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/"/>
     
     
-      <category term="Catalina" scheme="https://emuqi.github.io/tags/Catalina/"/>
+      <category term="Catalina" scheme="https://wulu.zone/tags/Catalina/"/>
     
   </entry>
   
