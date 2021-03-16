@@ -324,9 +324,9 @@
 <p>重新访问wekan，就可以直接用之前的账号登陆并且使用原来的看板了！</p>
 ]]></content>
       <categories>
+        <category>笔记</category>
         <category>解决方案</category>
         <category>开源项目分享</category>
-        <category>笔记</category>
       </categories>
       <tags>
         <tag>树莓派</tag>
@@ -423,8 +423,8 @@
 <h3 id="自动记录结束时间"><a href="#自动记录结束时间" class="headerlink" title="自动记录结束时间"></a>自动记录结束时间</h3><p><img src="/images/post/Wekan.assets/automarkendtime.webp" alt="自动记录结束时间"></p>
 ]]></content>
       <categories>
-        <category>开源项目分享</category>
         <category>笔记</category>
+        <category>开源项目分享</category>
       </categories>
       <tags>
         <tag>Wekan</tag>
