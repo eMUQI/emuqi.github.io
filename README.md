@@ -1,4 +1,5 @@
 # emuqi.github.io
-wulu's blog
+
+Wulu's blog
 
 Move to https://wulu.zone/
